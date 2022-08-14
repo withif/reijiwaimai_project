@@ -80,6 +80,15 @@ public class SetmealController {
     @DeleteMapping
     public R<String> delete(@RequestParam List<Long> ids){
         setmealService.deleyemealwithDish(ids);
+        if(ids.size()>1){
+            Set keys = redisTemplate.keys("setmeal_*");//支持通配符,所有以setmeal_开头的数据都会被删
+            redisTemplate.delete(keys);
+        }
+        if(ids.size()==1){
+            Long categoryId = setmealService.getById(ids.get(0)).getCategoryId();
+            String redis_key="setmeal_"+categoryId+"_1";
+            redisTemplate.delete(redis_key);
+        }
         return R.success("套餐数据删除成功");
     }
     @PostMapping("/status/{status}")
@@ -91,6 +100,11 @@ public class SetmealController {
         if(ids.size()>1){
             Set keys = redisTemplate.keys("setmeal_*");//支持通配符,所有以setmeal_开头的数据都会被删
             redisTemplate.delete(keys);
+        }
+        if(ids.size()==1){
+            Long categoryId = setmealService.getById(ids.get(0)).getCategoryId();
+            String redis_key="setmeal_"+categoryId+"_1";
+            redisTemplate.delete(redis_key);
         }
         return R.success("停售成功");
     }
