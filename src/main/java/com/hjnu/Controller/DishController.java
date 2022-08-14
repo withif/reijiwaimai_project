@@ -69,6 +69,9 @@ public class DishController {
     public R<String> addDish(@RequestBody DishDto dishDto){
         log.info(dishDto.toString());
         dishService.addDishWithFlaver(dishDto);
+        //删除Redis中对应菜品的缓存,即根据分类来清理缓存
+        String key="dish_"+dishDto.getCategoryId()+"_1";
+        redisTemplate.delete(key);
         return R.success("新增菜品成功");
     }
     @GetMapping("/{id}")
@@ -85,6 +88,9 @@ public class DishController {
     @PutMapping
    public R<String> update(@RequestBody DishDto dishDto){
         dishService.updateDishWithFlavor(dishDto);
+        //更新Redis中的缓存
+        String key="dish_"+dishDto.getCategoryId()+"_1";
+        redisTemplate.delete(key);
         return R.success("更新成功");
    }
 
@@ -101,6 +107,9 @@ public class DishController {
             Dish d=new Dish();
             BeanUtils.copyProperties(item,d,"status");
             d.setStatus(status);
+            //清除Redis中的缓存
+            String key="dish_"+item.getCategoryId()+"_1";
+            redisTemplate.delete(key);
             return d;
         }).collect(Collectors.toList());
         dishService.updateBatchById(l);
@@ -111,6 +120,14 @@ public class DishController {
     @DeleteMapping
    public R<String> delete(@RequestParam("ids") List<Long> ids){
         dishService.removeBatchByIds(ids);
+        ids.forEach((id)->{
+            //清除Redis中的缓存
+            if(dishService.getById(id)!=null){
+                String key="dish_"+dishService.getById(id).getCategoryId()+"_1";
+                redisTemplate.delete(key);
+            }
+        });
+
         return R.success("删除成功");
     }
 //    @GetMapping("/list")

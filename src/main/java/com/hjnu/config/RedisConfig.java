@@ -13,12 +13,11 @@ import org.springframework.data.redis.serializer.*;
 public class RedisConfig extends CachingConfigurerSupport {
     /**
      * 序列化，使到redis里面读数据的时候可以读到服务器，以字符串的形式读出来而不是十六进制
-     *
+     *不应该把redis中的value也设置为StringRedisSerializer()，这样会造成存值的时候只能存字符串
      */
     @Bean
     public RedisTemplate<Object,Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<Object,Object> redisTemplate = new RedisTemplate<Object,Object>();
-        //不应该把redis中的value也设置为StringRedisSerializer()，这样会造成存值的时候只能存字符串
 //        redisTemplate.setDefaultSerializer(new StringRedisSerializer());
 //        redisTemplate.setEnableDefaultSerializer(true);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
