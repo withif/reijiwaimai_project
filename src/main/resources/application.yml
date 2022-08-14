@@ -10,7 +10,7 @@ spring:
   redis:
     database: 0
     username: root
-    url: redis://<root>@<192.168.142.128>:<6379>
+    host: redis://<root>@<192.168.142.128>:<6379>
 mybatis-plus:
   configuration:
     #在映射实体或者属性时，将数据库中表名和字段名中的下划线去掉，按照驼峰命名法映射
