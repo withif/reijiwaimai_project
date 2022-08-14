@@ -9,8 +9,9 @@ spring:
       password: root
   redis:
     database: 0
-    username: root
-    host: redis://<root>@<192.168.142.128>:<6379>
+    host: 192.168.142.128
+    port: 6379
+    password: root
 mybatis-plus:
   configuration:
     #在映射实体或者属性时，将数据库中表名和字段名中的下划线去掉，按照驼峰命名法映射
