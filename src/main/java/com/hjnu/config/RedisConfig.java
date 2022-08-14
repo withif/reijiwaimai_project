@@ -18,8 +18,10 @@ public class RedisConfig extends CachingConfigurerSupport {
     @Bean
     public RedisTemplate<Object,Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<Object,Object> redisTemplate = new RedisTemplate<Object,Object>();
-        redisTemplate.setDefaultSerializer(new StringRedisSerializer());
-        redisTemplate.setEnableDefaultSerializer(true);
+        //不应该把redis中的value也设置为StringRedisSerializer()，这样会造成存值的时候只能存字符串
+//        redisTemplate.setDefaultSerializer(new StringRedisSerializer());
+//        redisTemplate.setEnableDefaultSerializer(true);
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         return redisTemplate;
     }

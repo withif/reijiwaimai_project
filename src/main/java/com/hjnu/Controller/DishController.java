@@ -11,10 +11,12 @@ import lombok.extern.slf4j.*;
 import org.apache.ibatis.annotations.*;
 import org.springframework.beans.*;
 import org.springframework.beans.factory.annotation.*;
+import org.springframework.data.redis.core.*;
 import org.springframework.util.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.*;
 
 @Slf4j
@@ -27,6 +29,8 @@ public class DishController {
     private CategoryService categoryService;
     @Autowired
     private DishService dishService;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @GetMapping("/page")
     public R<Page> pageList(@Param("page")Integer page , @Param("pageSize")Integer pageSize,@Param("name")String name){
@@ -125,6 +129,13 @@ public class DishController {
 
         @GetMapping("/list")
     public R<List> getlist(Dish dish){
+        String redis_key="dish_"+dish.getCategoryId()+"_"+dish.getStatus();
+        List<DishDto> l=null;
+        //从redis中查询数据，如果查不到，再从数据库中找
+        l= (List<DishDto>)redisTemplate.opsForValue().get(redis_key);
+        if(l!=null){
+            return R.success(l);
+        }
         Long categoryId = dish.getCategoryId();
         LambdaQueryWrapper<Dish> lambdaQueryWrapper=new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(categoryId!=null,Dish::getCategoryId,categoryId);
@@ -132,7 +143,7 @@ public class DishController {
         lambdaQueryWrapper.orderByAsc(Dish::getSort);
         List<Dish> list = dishService.list(lambdaQueryWrapper);
 
-        List<DishDto> l=list.stream().map((item)->{
+        l=list.stream().map((item)->{
             DishDto dishDto=new DishDto();
             BeanUtils.copyProperties(item,dishDto);
             Long id = item.getId();
@@ -145,6 +156,7 @@ public class DishController {
 
 
         if(l!=null){
+            redisTemplate.opsForValue().set(redis_key,l,60,TimeUnit.MINUTES);
             return R.success(l);
         }
         return R.error("查询失败");
