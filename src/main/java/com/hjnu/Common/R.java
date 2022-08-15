@@ -1,15 +1,18 @@
 package com.hjnu.Common;
 
 import lombok.Data;
+
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * 通用返回结果，所有的响应的数据都会以R这个类的形式返回
+ * 只有实现了序列化才能进行缓存的读写
  * @param <T>
  */
 @Data
-public class R<T> {
+public class R<T> implements Serializable {
 
     private Integer code; //编码：1成功，0和其它数字为失败
 
