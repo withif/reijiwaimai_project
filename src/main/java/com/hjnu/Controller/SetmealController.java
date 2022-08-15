@@ -36,13 +36,19 @@ public class SetmealController {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    /**
+     * allEntries = true表示删除缓存中setmeal下的所有缓存
+     * @param setmealDto
+     * @return
+     */
+    @CacheEvict(value = "setmeal",allEntries = true)
     @PostMapping
     public R<String> addSetmeal(@RequestBody SetmealDto setmealDto){
         log.info(setmealDto.toString());
         setmealService.addSetmealwithDish(setmealDto);
         //删除Redis缓存
         String redis_key="setmeal_"+setmealDto.getCategoryId()+"_"+setmealDto.getStatus();
-        redisTemplate.delete(redis_key);
+//        redisTemplate.delete(redis_key);
         return R.success("添加成功");
     }
 
@@ -78,6 +84,12 @@ public class SetmealController {
         return R.success(setmealDtoPage);
     }
 
+    /**
+     * allEntries = true表示删除缓存中setmeal下的所有缓存
+     * @param ids
+     * @return
+     */
+    @CacheEvict(value = "setmeal",allEntries = true)
     @DeleteMapping
     public R<String> delete(@RequestParam List<Long> ids){
         setmealService.deleyemealwithDish(ids);
