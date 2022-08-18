@@ -57,6 +57,6 @@ mybatis-plus:
     db-config:
       id-type: ASSIGN_ID
 ruijiwaimai:
-  path: /usr/local/img
+  path: /usr/local/img/
 #ruijiwaimai:
 #  path: C:\Users\36017\Desktop\java\picture\ppp\
