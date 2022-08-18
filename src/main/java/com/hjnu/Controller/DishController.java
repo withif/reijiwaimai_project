@@ -11,6 +11,7 @@ import lombok.extern.slf4j.*;
 import org.apache.ibatis.annotations.*;
 import org.springframework.beans.*;
 import org.springframework.beans.factory.annotation.*;
+import org.springframework.cache.annotation.*;
 import org.springframework.data.redis.core.*;
 import org.springframework.util.*;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,8 @@ public class DishController {
     @Autowired
     private RedisTemplate redisTemplate;
 
+
+    @Cacheable(value = "dish",key = "'dish_'+#page")
     @GetMapping("/page")
     public R<Page> pageList(@Param("page")Integer page , @Param("pageSize")Integer pageSize,@Param("name")String name){
 
@@ -66,12 +69,13 @@ public class DishController {
 
     }
     @PostMapping
+    @CacheEvict(value = "dish",allEntries = true)
     public R<String> addDish(@RequestBody DishDto dishDto){
         log.info(dishDto.toString());
         dishService.addDishWithFlaver(dishDto);
         //删除Redis中对应菜品的缓存,即根据分类来清理缓存
-        String key="dish_"+dishDto.getCategoryId()+"_1";
-        redisTemplate.delete(key);
+//        String key="dish_"+dishDto.getCategoryId()+"_1";
+//        redisTemplate.delete(key);
         return R.success("新增菜品成功");
     }
     @GetMapping("/{id}")
@@ -85,15 +89,16 @@ public class DishController {
      * @param dishDto
      * @return
      */
+    @CacheEvict(value = "dish",allEntries = true)
     @PutMapping
    public R<String> update(@RequestBody DishDto dishDto){
         dishService.updateDishWithFlavor(dishDto);
         //更新Redis中的缓存
-        String key="dish_"+dishDto.getCategoryId()+"_1";
-        redisTemplate.delete(key);
+//        String key="dish_"+dishDto.getCategoryId()+"_1";
+//        redisTemplate.delete(key);
         return R.success("更新成功");
    }
-
+    @CacheEvict(value = "setmeal",allEntries = true)
     @PostMapping("/status/{status}")
    public R<String> updateDish(@RequestParam("ids")List<Long> ids,@PathVariable Integer status){
 //        ids.forEach((item)->{
@@ -108,26 +113,25 @@ public class DishController {
             BeanUtils.copyProperties(item,d,"status");
             d.setStatus(status);
             //清除Redis中的缓存
-            String key="dish_"+item.getCategoryId()+"_1";
-            redisTemplate.delete(key);
+//            String key="dish_"+item.getCategoryId()+"_1";
+//            redisTemplate.delete(key);
             return d;
         }).collect(Collectors.toList());
         dishService.updateBatchById(l);
 
         return R.success("更新成功");
     }
-
+    @CacheEvict(value = "setmeal",allEntries = true)
     @DeleteMapping
    public R<String> delete(@RequestParam("ids") List<Long> ids){
         dishService.removeBatchByIds(ids);
-        ids.forEach((id)->{
-            //清除Redis中的缓存
-            if(dishService.getById(id)!=null){
-                String key="dish_"+dishService.getById(id).getCategoryId()+"_1";
-                redisTemplate.delete(key);
-            }
-        });
-
+//        ids.forEach((id)->{
+//            //清除Redis中的缓存
+//            if(dishService.getById(id)!=null){
+//                String key="dish_"+dishService.getById(id).getCategoryId()+"_1";
+//                redisTemplate.delete(key);
+//            }
+//        });
         return R.success("删除成功");
     }
 //    @GetMapping("/list")
@@ -149,10 +153,10 @@ public class DishController {
         String redis_key="dish_"+dish.getCategoryId()+"_"+dish.getStatus();
         List<DishDto> l=null;
         //从redis中查询数据，如果查不到，再从数据库中找
-        l= (List<DishDto>)redisTemplate.opsForValue().get(redis_key);
-        if(l!=null){
-            return R.success(l);
-        }
+//        l= (List<DishDto>)redisTemplate.opsForValue().get(redis_key);
+//        if(l!=null){
+//            return R.success(l);
+//        }
         Long categoryId = dish.getCategoryId();
         LambdaQueryWrapper<Dish> lambdaQueryWrapper=new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(categoryId!=null,Dish::getCategoryId,categoryId);
@@ -173,7 +177,7 @@ public class DishController {
 
 
         if(l!=null){
-            redisTemplate.opsForValue().set(redis_key,l,60,TimeUnit.MINUTES);
+//            redisTemplate.opsForValue().set(redis_key,l,60,TimeUnit.MINUTES);
             return R.success(l);
         }
         return R.error("查询失败");

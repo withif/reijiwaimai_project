@@ -59,6 +59,7 @@ public class SetmealController {
      * @param name
      * @return
      */
+    @Cacheable(value = "setmeal",key = "'setmeal'+#page")
     @GetMapping("/page")
     public R<Page> page(Integer page, Integer pageSize, String name){
         Page<SetmealDto> setmealDtoPage=new Page<>();
@@ -104,6 +105,7 @@ public class SetmealController {
 //        }
         return R.success("套餐数据删除成功");
     }
+    @CacheEvict(value = "setmeal",allEntries = true)
     @PostMapping("/status/{status}")
     public R<String > changeStatus(@PathVariable Integer status,@RequestParam List<Long> ids){
         LambdaUpdateWrapper<Setmeal> lambdaQueryWrapper=new LambdaUpdateWrapper<>();
@@ -126,7 +128,7 @@ public class SetmealController {
     /**
      * http://localhost/setmeal/list?categoryId=1413386191767674881&status=1
      */
-    @Cacheable(value = "setmeal",key = "'setmeal_'+#categoryId+'_'+#status")
+//    @Cacheable(value = "setmeal",key = "'setmeal_'+#categoryId+'_'+#status")
     @GetMapping("/list")
     public R<List> list(@RequestParam Long categoryId,@RequestParam Integer status){
         String redis_key="setmeal_"+categoryId+"_"+status;
@@ -156,13 +158,13 @@ public class SetmealController {
         log.info(setmealDto.toString());
         return R.success(setmealDto);
     }
-
+    @CacheEvict(value = "setmeal",allEntries = true)
     @PutMapping
     public R<String> update(@RequestBody SetmealDto setmealDto){
         setmealService.updateSetmealwithDish(setmealDto);
         //删除Redis缓存
         String redis_key="setmeal_"+setmealDto.getCategoryId()+"_"+setmealDto.getStatus();
-        redisTemplate.delete(redis_key);
+//        redisTemplate.delete(redis_key);
         return R.success("更新成功");
     }
 }
